@@ -9,7 +9,6 @@ class Config:
 
     data_root: Path = Path("data/mvtec")
     category: str = "bottle"
-    test_defect_types: Tuple[str, ...] = ("broken_large", "broken_small", "contamination")
 
     img_size: int = 224
     resize_size: int = 256
