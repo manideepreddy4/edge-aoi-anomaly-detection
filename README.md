@@ -23,31 +23,46 @@ The result is a system that generalizes to unseen defect types without ever trai
 
 ## Results
 
-### 224px Resolution
+### All 15 Categories — 224px Resolution
 
 | Category | Image AUROC | Pixel AUROC | F1 | Threshold |
 |----------|------------:|------------:|---:|----------:|
 | bottle | 1.0000 | 0.9542 | 1.0000 | 0.6505 |
+| cable | 0.9983 | 0.9214 | 0.9840 | 0.7019 |
+| capsule | 0.9446 | 0.9321 | 0.9636 | 0.4484 |
 | carpet | 0.9960 | 0.9588 | 0.9834 | 0.6002 |
 | grid | 0.9699 | 0.9639 | 0.9643 | 0.5659 |
-| capsule | 0.9446 | 0.9321 | 0.9636 | 0.4484 |
+| hazelnut | 1.0000 | 0.9504 | 1.0000 | 0.7932 |
+| leather | 1.0000 | 0.9864 | 1.0000 | 0.6544 |
+| metal_nut | 0.9995 | 0.9190 | 0.9947 | 0.6817 |
+| pill | 0.9607 | 0.8400 | 0.9541 | 0.6071 |
+| screw | 0.8832 | 0.8890 | 0.9143 | 0.5676 |
+| tile | 0.9917 | 0.9189 | 0.9940 | 0.6999 |
+| toothbrush | 0.9889 | 0.9268 | 0.9677 | 0.6100 |
 | transistor | 0.9996 | 0.7702 | 0.9877 | 0.6932 |
+| wood | 0.9816 | 0.9199 | 0.9587 | 0.7208 |
+| zipper | 0.9648 | 0.9272 | 0.9551 | 0.5015 |
+| **Mean** | **0.9919** | **0.9239** | **0.9814** | — |
 
-### 384px Resolution
+---
 
-| Category | Image AUROC | Pixel AUROC | F1 | Threshold |
-|----------|------------:|------------:|---:|----------:|
-| bottle | 0.9992 | 0.9648 | 0.9921 | 0.7083 |
-| carpet | 0.9976 | 0.9587 | 0.9944 | 0.5993 |
-| grid | 0.9841 | 0.9894 | 0.9912 | 0.6757 |
-| capsule | 0.9597 | 0.9307 | 0.9820 | 0.5749 |
-| transistor | 0.9837 | 0.7271 | 0.9620 | 0.7534 |
+### Resolution Experiment — 224px vs 384px (5 categories)
+
+To understand the effect of input resolution, I ran a separate experiment on 5 categories at 384px.
+
+| Category | Image AUROC 224px | Image AUROC 384px | Pixel AUROC 224px | Pixel AUROC 384px |
+|----------|------------------:|------------------:|------------------:|------------------:|
+| bottle | 1.0000 | 0.9992 | 0.9542 | 0.9648 |
+| carpet | 0.9960 | 0.9976 | 0.9588 | 0.9587 |
+| grid | 0.9699 | 0.9841 | 0.9639 | 0.9894 |
+| capsule | 0.9446 | 0.9597 | 0.9321 | 0.9307 |
+| transistor | 0.9996 | 0.9837 | 0.7702 | 0.7271 |
 
 **Key takeaways:**
-- 384px made a big difference on grid — pixel AUROC jumped from 0.9639 to 0.9894
+- 384px helped grid the most — pixel AUROC jumped from 0.9639 to 0.9894
 - 224px was more stable for transistor
 - Bottle hit perfect image AUROC (1.0) at 224px
-- There's a real tradeoff between resolution and robustness depending on the texture type
+- Higher resolution doesn't always win — there's a real tradeoff depending on texture type
 
 ---
 
