@@ -36,7 +36,9 @@ def benchmark_inference(
 
     latencies = []
 
-    for i in range(5):
+    # Warmup: clamp to available samples to avoid IndexError on small datasets.
+    warmup_count = min(5, len(dataset))
+    for i in range(warmup_count):
         sample = dataset[i]
         detector.predict(sample["image"])
 

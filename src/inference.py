@@ -2,7 +2,6 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
-import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -11,7 +10,7 @@ from PIL import Image
 from src.config import Config
 from src.models import FeatureExtractor, fuse_patch_embeddings
 from src.preprocess import preprocess_image
-from src.utils import log
+from src.utils import log, resolve_device
 
 
 class AnomalyDetector:
@@ -37,7 +36,7 @@ class AnomalyDetector:
         if self.bank_type not in {"baseline", "coreset"}:
             raise ValueError("bank_type must be either 'baseline' or 'coreset'.")
 
-        self.device = self._resolve_device(device)
+        self.device = resolve_device(device)
         self.threshold = threshold if threshold is not None else self._load_threshold()
 
         self.extractor = FeatureExtractor(self.config).to(self.device)
@@ -46,22 +45,6 @@ class AnomalyDetector:
         self.memory_vectors, self.bank_metadata = self._load_memory_bank()
         self.grid_h = int(self.bank_metadata["grid_h"])
         self.grid_w = int(self.bank_metadata["grid_w"])
-
-    def _resolve_device(self, device: Optional[torch.device] = None) -> torch.device:
-        if device is not None:
-            return device
-
-        if torch.cuda.is_available():
-            try:
-                _ = torch.zeros(1, device="cuda")
-                torch.cuda.synchronize()
-                log("CUDA test succeeded, using GPU.")
-                return torch.device("cuda")
-            except Exception as e:
-                log(f"CUDA detected but unusable, falling back to CPU. Reason: {e}")
-
-        log("Using CPU.")
-        return torch.device("cpu")
 
     def _bank_paths(self) -> Path:
         if self.bank_type == "baseline":
@@ -85,7 +68,9 @@ class AnomalyDetector:
                 f"Memory bank not found: {bank_path}. Run src/build_memory.py first."
             )
 
-        payload = torch.load(bank_path, map_location=self.device, weights_only=True)
+        # weights_only=False is intentional: the payload contains lists and dicts
+        # (source_paths, info) which are trusted local artifacts saved by build_memory.py.
+        payload = torch.load(bank_path, map_location=self.device, weights_only=False)
         meta = payload.get("info", {})
         vectors = payload.get("vectors", None)
 

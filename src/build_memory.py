@@ -12,7 +12,7 @@ from src.config import Config
 from src.data_loader import MVTecBottleDataset
 from src.preprocess import preprocess_batch
 from src.models import FeatureExtractor, fuse_patch_embeddings
-from src.utils import set_seed, log, save_json
+from src.utils import set_seed, log, save_json, resolve_device
 
 
 @dataclass
@@ -25,26 +25,6 @@ class MemoryBankInfo:
     grid_w: int
     memory_mb: float
     memory_path: str
-
-
-def _resolve_device(device: Optional[torch.device] = None) -> torch.device:
-    """
-    Prefer CUDA if it is actually usable.
-    """
-    if device is not None:
-        return device
-
-    if torch.cuda.is_available():
-        try:
-            _ = torch.zeros(1, device="cuda")
-            torch.cuda.synchronize()
-            log("CUDA test succeeded, using GPU.")
-            return torch.device("cuda")
-        except Exception as e:
-            log(f"CUDA detected but unusable, falling back to CPU. Reason: {e}")
-
-    log("Using CPU.")
-    return torch.device("cpu")
 
 
 def _make_loader(config: Config, split: str, batch_size: int = 8) -> DataLoader:
@@ -70,9 +50,6 @@ def _extract_vectors_from_batch(
     with torch.inference_mode():
         fused_map = extractor.extract_fused_feature_map(x)
 
-    if fused_map.device != x.device:
-        raise RuntimeError(f"Device mismatch: input on {x.device}, fused_map on {fused_map.device}")
-
     grid_h, grid_w = fused_map.shape[-2], fused_map.shape[-1]
     patch_vectors = fuse_patch_embeddings(fused_map)
 
@@ -97,7 +74,7 @@ def collect_training_patch_vectors(
         source_paths: list length N
         grid_size: (H, W)
     """
-    device = _resolve_device(device)
+    device = resolve_device(device)
 
     if device.type == "cuda":
         torch.backends.cudnn.benchmark = True
@@ -147,10 +124,11 @@ def greedy_furthest_point_sampling_torch(
     if target_size >= n:
         return torch.arange(n, device=vectors.device, dtype=torch.long)
 
-    g = torch.Generator(device=vectors.device)
+    # Use a CPU generator for seeding to avoid CUDA generator initialization issues.
+    g = torch.Generator()
     g.manual_seed(seed)
+    first_idx = int(torch.randint(0, n, (1,), generator=g).item())
 
-    first_idx = int(torch.randint(0, n, (1,), generator=g, device=vectors.device).item())
     selected_mask = torch.zeros(n, dtype=torch.bool, device=vectors.device)
     selected_mask[first_idx] = True
 
@@ -185,7 +163,7 @@ def build_and_save_memory_banks(
     config.ensure_dirs()
     set_seed(config.seed)
 
-    device = _resolve_device(device)
+    device = resolve_device(device)
     log(f"Using device: {device}")
 
     log(f"Collecting training patch vectors for category='{config.category}'...")
@@ -258,8 +236,8 @@ def build_and_save_memory_banks(
         "grid_h": grid_h,
         "grid_w": grid_w,
         "device": str(device),
-        "baseline": baseline_meta.__dict__,
-        "coreset": coreset_meta.__dict__,
+        "baseline": asdict(baseline_meta),
+        "coreset": asdict(coreset_meta),
         "coreset_ratio_requested": config.coreset_ratio,
         "coreset_ratio_actual": float(coreset_meta.num_vectors / max(1, baseline_meta.num_vectors)),
     }
@@ -274,7 +252,8 @@ def build_and_save_memory_banks(
 
 
 def load_memory_bank_metadata(path: Path) -> Dict[str, Any]:
-    return torch.load(path, map_location="cpu", weights_only=True)
+    # weights_only=False is intentional: payload contains lists/dicts (trusted local files).
+    return torch.load(path, map_location="cpu", weights_only=False)
 
 
 if __name__ == "__main__":

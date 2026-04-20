@@ -104,8 +104,17 @@ def _evaluate_split(
     cls_metrics = classification_metrics(labels_np, scores_np, best.threshold)
     conf = confusion_metrics(labels_np, scores_np, best.threshold)
 
-    fpr, tpr, _ = roc_curve(labels_np, scores_np)
-    precision, recall, _ = precision_recall_curve(labels_np, scores_np)
+    # Guard against single-class test sets (all good or all defective).
+    if len(np.unique(labels_np)) > 1:
+        fpr, tpr, _ = roc_curve(labels_np, scores_np)
+        precision, recall, _ = precision_recall_curve(labels_np, scores_np)
+    else:
+        log("Warning: only one class present in test labels — ROC/PR curves are undefined.")
+        fpr = np.array([0.0, 1.0], dtype=np.float32)
+        tpr = np.array([0.0, 1.0], dtype=np.float32)
+        precision = np.array([1.0, 0.0], dtype=np.float32)
+        recall = np.array([0.0, 1.0], dtype=np.float32)
+
     ap = image_level_ap(labels_np, scores_np)
 
     output = {
@@ -116,7 +125,7 @@ def _evaluate_split(
         "heatmaps": heatmaps_np,
         "masks": masks_np,
         "image_auc": float(img_auc),
-        "pixel_auc": float(pixel_auc) if pixel_auc == pixel_auc else None,
+        "pixel_auc": None if np.isnan(pixel_auc) else float(pixel_auc),
         "best_threshold": float(best.threshold),
         "best_f1": float(best.best_f1),
         "best_precision": float(best.precision),
@@ -221,7 +230,8 @@ def _write_pixel_auroc_report(
                     "image_path": image_paths[i],
                     "defect_type": defect_type,
                     "label": int(labels[i]),
-                    "pixel_auroc": float(auc) if auc == auc else "nan",
+                    # Always store a float so the CSV column is type-consistent.
+                    "pixel_auroc": float("nan") if np.isnan(auc) else float(auc),
                 }
             )
 
@@ -306,8 +316,6 @@ def evaluate_model(
     }
 
     save_metrics_json(metrics_summary, config.metrics_path)
-
-    config.threshold_path.write_text(f"{best_threshold:.8f}\n", encoding="utf-8")
 
     log(
         f"[{config.category}] Image AUROC: {metrics_summary['image_auroc']:.4f} | "

@@ -2,12 +2,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Tuple
 
+# Absolute root of the edge_aoi project, regardless of working directory.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 
 @dataclass(frozen=True)
 class Config:
     seed: int = 42
 
-    data_root: Path = Path("data/mvtec")
+    data_root: Path = _PROJECT_ROOT / "data/mvtec"
     category: str = "bottle"
 
     img_size: int = 224
@@ -18,20 +21,21 @@ class Config:
     backbone: str = "wide_resnet50_2"
     use_pretrained: bool = True
 
-    faiss_k: int = 1
     coreset_ratio: float = 0.10
     use_coreset: bool = True
 
     layer2_weight: float = 1.0
 
-    heatmap_sigma: float = 0.3
+    # Gaussian sigma for heatmap smoothing (pixels at img_size resolution).
+    # Values in the range 4–8 produce meaningful spatial smoothing.
+    heatmap_sigma: float = 4.0
 
-    output_root: Path = Path("outputs")
-    memory_bank_dir: Path = Path("outputs/memory_banks")
-    results_dir: Path = Path("outputs/results")
-    figures_dir: Path = Path("outputs/results/figures")
-    evaluation_dir: Path = Path("outputs/evaluation")
-    benchmarks_dir: Path = Path("outputs/benchmarks")
+    output_root: Path = _PROJECT_ROOT / "outputs"
+    memory_bank_dir: Path = _PROJECT_ROOT / "outputs/memory_banks"
+    results_dir: Path = _PROJECT_ROOT / "outputs/results"
+    figures_dir: Path = _PROJECT_ROOT / "outputs/results/figures"
+    evaluation_dir: Path = _PROJECT_ROOT / "outputs/evaluation"
+    benchmarks_dir: Path = _PROJECT_ROOT / "outputs/benchmarks"
 
     @property
     def category_root(self) -> Path:

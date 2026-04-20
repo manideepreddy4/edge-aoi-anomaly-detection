@@ -120,6 +120,45 @@ That made the system much more practical without collapsing performance.
 
 ## How to run
 
-### Install dependencies
+### 1. Clone and enter the project directory
+```bash
+git clone <repo-url>
+cd MTVEC_project/edge_aoi
+```
+
+### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
+```
+
+Dependencies: `torch`, `torchvision`, `numpy`, `opencv-python`, `pillow`, `scikit-learn`, `matplotlib`, `pandas`, `streamlit`
+
+### 3. Download the MVTec AD dataset
+Place the dataset under `edge_aoi/data/mvtec/` so the structure looks like:
+```
+edge_aoi/data/mvtec/bottle/train/good/
+edge_aoi/data/mvtec/bottle/test/good/
+edge_aoi/data/mvtec/bottle/test/broken_large/
+...
+```
+
+### 4. Build memory banks
+```bash
+# From inside edge_aoi/
+python -m src.build_memory --category bottle
+```
+
+### 5. Evaluate
+```bash
+python -m src.evaluate --category bottle
+```
+
+### 6. Run all categories at once
+```bash
+python run_all.py
+```
+
+### 7. Launch the Streamlit UI
+```bash
+streamlit run app/ui.py
+```
