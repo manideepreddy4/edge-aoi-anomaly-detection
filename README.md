@@ -76,39 +76,37 @@ Higher resolution doesn't always win. Results across 5 categories:
 
 ## UI Examples
 
-### Bottle — Broken Glass (Object-Level Defect)
-![Bottle UI](assets/screenshots/bottle_ui.png)
+### Bottle — Contamination Defect (Object-Level)
+![Bottle](assets/screenshots/bottle.png)
 
-Anomaly score 1.0. The broken region lights up red/orange. The intact surface stays blue. Perfect separation with zero defect labels used during training.
-
----
-
-### Carpet — Cut Defect (Texture-Level Defect)
-![Carpet UI](assets/screenshots/carpet_ui.png)
-
-Anomaly score 0.9366. The crack follows the exact path of the cut in the heatmap. Texture-level defects are harder — the whole surface looks similar — but the model still localizes the exact damage region.
+The bottom of the bottle has a contamination defect. The heatmap pinpoints the exact damaged region in red/orange while the clean surface stays blue. The model has never seen a defective bottle — it flags this purely because it deviates from normal.
 
 ---
 
-### Grid — Bent Wires (Fine Texture)
-![Grid UI](assets/screenshots/grid_ui.png)
+### Carpet — Thread Pull Defect (Texture-Level)
+![Carpet](assets/screenshots/carpet.png)
 
-Grid is one of the hardest categories in MVTec due to its repeating fine pattern. Pixel AUROC of 0.9653 at 224px, jumping to 0.9894 at 384px — resolution matters most here.
+A small pulled-thread defect in the woven fabric. In the original image it's easy to miss — in the heatmap it shows up as a sharp red hotspot with precise localization. Texture categories like carpet are harder because the whole surface looks similar, yet the model isolates the exact damaged patch.
 
 ---
 
-### Transistor — Component-Level Defect (Electronics)
-![Transistor UI](assets/screenshots/transistor_ui.png)
+### Grid — Broken Pattern (Fine Texture)
+![Grid](assets/screenshots/grid.png)
 
-Image AUROC of 0.9996 — near-perfect detection. The lower pixel AUROC (0.7878) reflects the challenge of localizing small anomalies on a densely packed PCB component.
+A subtle break in the repeating diamond grid pattern. Nearly invisible in the original image, but the heatmap concentrates the anomaly score exactly on the damaged cell. Grid is one of the hardest MVTec categories — pixel AUROC jumps from 0.9653 at 224px to 0.9894 at 384px, showing resolution matters most for fine textures.
+
+---
+
+### Transistor — Misplaced Component (Electronics)
+![Transistor](assets/screenshots/transistor.png)
+
+A transistor with a defect at the top of the component — likely a bent or missing lead. The heatmap lights up the top section in red while the rest of the board scores low. Image AUROC of 0.9996 means near-perfect detection at the image level.
 
 ---
 
 ---
 
 ## Architecture
-
-![Architecture](assets/screenshots/architecture.png)
 
 **Backbone:** WideResNet50_2 pretrained on ImageNet. Features extracted from `layer2` and `layer3`, pooled to the same spatial resolution, concatenated, and L2-normalized. Each spatial location becomes a patch embedding.
 
