@@ -56,14 +56,6 @@ def preprocess_mask(mask: Image.Image, config: Config) -> torch.Tensor:
     return mask_tensor
 
 
-def tensor_to_image_range(x: torch.Tensor) -> torch.Tensor:
-    """
-    Utility to bring normalized tensors back to a visible 0-1 range if needed.
-    This is only for visualization, not model input.
-    """
-    return torch.clamp(x, 0.0, 1.0)
-
-
 def denormalize_image(tensor: torch.Tensor, config: Config) -> torch.Tensor:
     """
     Reverse ImageNet normalization for visualization.

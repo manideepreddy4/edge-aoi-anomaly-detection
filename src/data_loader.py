@@ -20,15 +20,6 @@ class SampleRecord:
     category: str
 
 
-def _infer_defect_type_from_name(image_path: Path) -> str:
-    """
-    Infer the defect type from the parent folder of the image.
-    For good images, return 'good'.
-    """
-    parent = image_path.parent.name.lower()
-    return parent
-
-
 def _make_mask_path(image_path: Path, gt_root: Path) -> Optional[Path]:
     """
     Map test defect image path to ground truth mask path.

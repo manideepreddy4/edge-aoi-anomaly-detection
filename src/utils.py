@@ -2,7 +2,7 @@ import time
 import random
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
@@ -16,6 +16,26 @@ def set_seed(seed: int = 42) -> None:
 
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+def resolve_device(device: Optional[torch.device] = None) -> torch.device:
+    """
+    Prefer CUDA if it is actually usable, otherwise fall back to CPU.
+    """
+    if device is not None:
+        return device
+
+    if torch.cuda.is_available():
+        try:
+            _ = torch.zeros(1, device="cuda")
+            torch.cuda.synchronize()
+            log("CUDA test succeeded, using GPU.")
+            return torch.device("cuda")
+        except Exception as e:
+            log(f"CUDA detected but unusable, falling back to CPU. Reason: {e}")
+
+    log("Using CPU.")
+    return torch.device("cpu")
 
 
 class Timer:

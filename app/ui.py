@@ -77,14 +77,7 @@ if uploaded_file is not None:
     score = float(result["score"])
     heatmap = np.asarray(result["heatmap"], dtype=np.float32)
     latency = float(result["latency_ms"])
-    threshold = float(detector.threshold)
-
-    if selected_category in ["grid", "carpet", "transistor"]:
-        adjusted_threshold = threshold * 0.85
-    else:
-        adjusted_threshold = threshold
-
-    status = "FAIL" if score >= adjusted_threshold else "PASS"
+    status = result["status"]
 
     overlay = blend_heatmap_with_image(image_np, heatmap, alpha=0.45)
 
