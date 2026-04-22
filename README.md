@@ -108,8 +108,6 @@ A transistor with a defect at the top of the component — likely a bent or miss
 
 ---
 
----
-
 ## Architecture
 
 **Backbone:** WideResNet50_2 pretrained on ImageNet. Features extracted from `layer2` and `layer3`, pooled to the same spatial resolution, concatenated, and L2-normalized. Each spatial location becomes a patch embedding.
@@ -157,7 +155,8 @@ edge_aoi/
 │   ├── metrics.py         # AUROC, AP, F1, confusion matrix
 │   ├── visualization.py   # Heatmap, overlay, ROC/PR plots
 │   ├── benchmark.py       # Latency benchmarking
-│   └── ablation.py        # Backbone / bank / feature ablations
+│   ├── ablation.py        # Backbone / bank / feature ablations
+│   └── utils.py           # Logging, seeding, device resolution, JSON I/O
 ├── app/
 │   └── ui.py              # Streamlit web UI
 ├── run_all.py             # Run all 15 categories end-to-end
